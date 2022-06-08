@@ -234,6 +234,14 @@ local function test_format()
             },
             equal = 'hello %%s world',
         },
+        {
+            arg = {
+                true,
+                'hello %s',
+                'world',
+            },
+            equal = 'true hello %s world',
+        },
     }) do
         local s = printx.format(unpack(v.arg))
         assert.equal(s, v.equal)

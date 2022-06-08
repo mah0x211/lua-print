@@ -18,10 +18,15 @@ luarocks install print
 
 ```lua
 local print = require('print')
-print('hello', 'world')
+print('print %q', 'hello', 'world') -- print "hello" world
 ```
 
-that equivalent to Lua's built-in `print` function.
+the above code is equivalent to the following code;
+
+```lua
+local format = require('print').format
+print(format('print %q', 'hello', 'world')) -- print "hello" world
+```
 
 
 ## print.flush()
