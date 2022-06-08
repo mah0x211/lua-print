@@ -233,7 +233,7 @@ end
 --- call
 --- @vararg ...
 local function call(_, ...)
-    print(...)
+    print(vformat(...))
 end
 
 return setmetatable({}, {
