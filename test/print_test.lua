@@ -241,7 +241,7 @@ local function test_format()
 
     -- test that throws an error
     local err = assert.throws(printx.format, 'hello %s %d', 'world')
-    assert.match(err, 'no value')
+    assert.match(err, 'argument #3')
 end
 
 local function test_flush()
