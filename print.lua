@@ -32,6 +32,7 @@ local print = print
 local select = select
 local type = type
 local unpack = unpack or table.unpack
+local builtin_tostring = tostring
 -- static variables
 local DEBUG = false
 local PRINT_LEVEL = 7
@@ -52,6 +53,21 @@ local LEVELS = {
     info = 7,
 }
 
+--- tostring converts v to string
+--- @param v any
+--- @return string str
+local function tostring(v)
+    local t = type(v)
+
+    if t == 'string' then
+        return v
+    elseif t == 'table' then
+        return dump(v, 0)
+    end
+
+    return builtin_tostring(v)
+end
+
 --- tostringv converts varargs to string and insert it into a string vector
 --- @param strv string[]
 --- @vararg ...
@@ -65,21 +81,16 @@ local function tostringv(strv, ...)
 
     -- convert to string
     for i = 1, narg do
-        local idx = n + i
-        local v = argv[i]
-        local t = type(v)
-
-        if t == 'string' then
-            strv[idx] = v
-        elseif t == 'table' then
-            strv[idx] = dump(v, 0)
-        else
-            strv[idx] = tostring(v)
-        end
+        strv[n + i] = tostring(argv[i])
     end
 
     return strv
 end
+
+local STRING_SPECS = {
+    q = true,
+    s = true,
+}
 
 --- count_format_params
 --- @param s string
@@ -99,7 +110,8 @@ local function count_format_params(s, narg, ...)
     local n = 0
     local head = find(s, '%%')
     while head do
-        if sub(s, head + 1, head + 1) == '%' then
+        local spec = sub(s, head + 1, head + 1)
+        if spec == '%' then
             -- skip escape
             head = head + 1
         elseif n == narg then
@@ -107,7 +119,7 @@ local function count_format_params(s, narg, ...)
             return narg, args
         else
             n = n + 1
-            params[n] = args[n]
+            params[n] = STRING_SPECS[spec] and tostring(args[n]) or args[n]
         end
         head = find(s, '%%', head + 1)
     end
