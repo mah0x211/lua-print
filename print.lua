@@ -137,11 +137,11 @@ local function stringify(strv, narg, fmt, ...)
 
     if nparam == 0 then
         tostringv(strv, fmt, ...)
-    elseif nparam >= narg then
-        strv[#strv + 1] = format(fmt, ...)
     else
         strv[#strv + 1] = format(fmt, unpack(params))
-        tostringv(strv, select(nparam + 1, ...))
+        if narg > nparam then
+            tostringv(strv, select(nparam + 1, ...))
+        end
     end
 
     return strv
