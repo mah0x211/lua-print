@@ -51,6 +51,7 @@ the following functions are receives any number of arguments and prints their va
 
 if the first argument is a format string, the rest of the arguments will be converted according to the format specifiers.
 
+- **print.fatal(...)**: throws an `error` after prints their values.
 - **print.emerge(...)**
 - **print.alert(...)**
 - **print.crit(...)**
@@ -66,14 +67,15 @@ the above functions can limit the output by setting the output level.
 
 The following output levels can be set.
 
-- `'emerge'` `print.emerge` function will be enabled.
-- `'alert'`: `print.alert` and the above features will be enabled.
-- `'crit'`: `print.crit` and the above features will be enabled.
-- `'error'`: `print.error` and the above features will be enabled.
-- `'warn'`: `print.warn` and the above features will be enabled.
-- `'notice'`: `print.notice` and the above features will be enabled.
-- `'info'`: `print.info` and the above features will be enabled. (**default**)
-- `'debug'`: `print.debug` and the above features will be enabled.
+- `'fatal'` `print.fatal` function will be enabled.
+- `'emerge'` `print.emerge` and the above functions will be enabled.
+- `'alert'`: `print.alert` and the above functions will be enabled.
+- `'crit'`: `print.crit` and the above functions will be enabled.
+- `'error'`: `print.error` and the above functions will be enabled.
+- `'warn'`: `print.warn` and the above functions will be enabled.
+- `'notice'`: `print.notice` and the above functions will be enabled.
+- `'info'`: `print.info` and the above functions will be enabled. (**default**)
+- `'debug'`: `print.debug` and the above functions will be enabled.
 
 for example, if you do `setlevel('error')`, `warn`, `notice`, and `info` will not be printed.
 
