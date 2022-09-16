@@ -44,6 +44,7 @@ local LEVELS = {
     [5] = 'warn',
     [6] = 'notice',
     [7] = 'info',
+    [8] = 'debug',
     emerge = 1,
     alert = 2,
     crit = 3,
@@ -51,6 +52,7 @@ local LEVELS = {
     warn = 5,
     notice = 6,
     info = 7,
+    debug = 8,
 }
 
 --- tostring converts v to string
@@ -159,7 +161,7 @@ local function printf(label, narg, fmt, ...)
     }
 
     -- append call info
-    if DEBUG then
+    if label == 'debug' or DEBUG then
         local info = getinfo(3, 'Sl')
         strv[2] = format('[%s:%d]', info.short_src, info.currentline)
     end
@@ -250,6 +252,7 @@ return setmetatable({}, {
         warn = new('warn'),
         notice = new('notice'),
         info = new('info'),
+        debug = new('debug'),
     },
 })
 
