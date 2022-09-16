@@ -43,26 +43,37 @@ local function test_setoutput()
     local buf = ''
     local flushed = false
     printx.setoutput({
-        flush = function(self)
-            flushed = true
-            return self
-        end,
         write = function(self, msg)
             buf = buf .. msg
-            return self
+            return false, 'write-error'
+        end,
+        flush = function(self)
+            flushed = true
+            return false, 'flush-error'
         end,
     })
-    printx.flush()
-    assert.is_true(flushed)
     printx('foo', 'bar', 'baz')
     assert.equal(buf, 'foo bar baz\n')
+
+    -- test that custom write method returns an erorr
+    buf = ''
+    local ok, err = printx.info('foo', 'bar', 'baz')
+    assert.is_false(ok)
+    assert.equal(err, 'write-error')
+    assert.match(buf, 'foo bar baz\n')
+
+    -- test that custom flush method returns an error
+    ok, err = printx.flush()
+    assert.is_false(ok)
+    assert.equal(err, 'flush-error')
+    assert.is_true(flushed)
 
     -- test that set default output
     printx.setoutput()
     assert.not_equal(io.output(), defout)
 
     -- test that throws an error if argument is invalid
-    local err = assert.throws(printx.setoutput, true)
+    err = assert.throws(printx.setoutput, true)
     assert.match(err, 'file must be file*, string or table')
 end
 
@@ -152,7 +163,7 @@ local function test_print_features()
         },
     }) do
         local f = assert(call(function()
-            printx[k](unpack(v))
+            assert.is_true(printx[k](unpack(v)))
         end))
         local res = f:read('*a')
         remove(f)
@@ -349,7 +360,7 @@ local function test_flush()
     -- test that flush buffer
     local file = assert(io.open(fname))
     assert.equal(file:read('*a'), '')
-    printx.flush()
+    assert(printx.flush())
     assert.equal(file:read('*a'), 'hello')
     assert(io.output(defout) == defout)
 

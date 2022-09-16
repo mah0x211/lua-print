@@ -160,21 +160,27 @@ end
 --- @param narg integer
 --- @param fmt string
 --- @param ... string
---- @return file*? file
+--- @return boolean ok
 --- @return any err
 --- @return any eno
 --- @return string msg
 local function printout(strv, narg, fmt, ...)
     stringify(strv, narg, fmt, ...)
     local msg = concat(strv, ' ') .. '\n'
-    local f, err, eno = WRITE_FN(OUTPUT, msg)
-    return f, err, eno, msg
+    local ok, err, eno = WRITE_FN(OUTPUT, msg)
+    if not ok then
+        return false, err, eno, msg
+    end
+    return true, nil, nil, msg
 end
 
 --- printf
 --- @param label string
 --- @param narg integer
 --- @param fmt string
+--- @return boolean ok
+--- @return any err
+--- @return any eno
 local function printf(label, narg, fmt, ...)
     local strv = {
         -- ISO8601 date format
@@ -187,12 +193,11 @@ local function printf(label, narg, fmt, ...)
         strv[2] = format('[%s:%d]', info.short_src, info.currentline)
     end
 
-    local _, err, eno, msg = printout(strv, narg, fmt, ...)
-    if err then
-        error(err, 3)
-    elseif label == 'fatal' then
+    local ok, err, eno, msg = printout(strv, narg, fmt, ...)
+    if label == 'fatal' then
         error(msg, 3)
     end
+    return ok, err, eno
 end
 
 --- new
@@ -204,7 +209,9 @@ local function new(label)
         if LEVELS[label] <= PRINT_LEVEL then
             local narg = select('#', ...)
             if narg > 0 then
-                printf(label, narg - 1, ...)
+                local ok, err, eno = printf(label, narg - 1, ...)
+                -- prevent tail-call optimization
+                return ok, err, eno
             end
         end
     end
@@ -225,8 +232,15 @@ local function vformat(...)
 end
 
 --- flush
+--- @return boolean ok
+--- @return any err
+--- @return any eno
 local function flush()
-    FLUSH_FN(OUTPUT)
+    local ok, err, eno = FLUSH_FN(OUTPUT)
+    if not ok then
+        return false, err, eno
+    end
+    return true
 end
 
 --- setoutput
