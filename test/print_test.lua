@@ -16,8 +16,10 @@ local function call(fn, ...)
     local f = io.tmpfile()
 
     assert(io.output(f) == f)
+    printx.setoutput()
     local ok, err = pcall(fn, ...)
     assert(io.output(defout) == defout)
+    printx.setoutput()
 
     if not ok then
         remove(f)
@@ -27,6 +29,41 @@ local function call(fn, ...)
     f:seek("set")
 
     return f
+end
+
+local function test_setoutput()
+    local defout = io.output()
+
+    -- test that custom output
+    local f = io.tmpfile()
+    printx.setoutput(f)
+    assert.equal(io.output(), f)
+
+    -- test that custom output as table
+    local buf = ''
+    local flushed = false
+    printx.setoutput({
+        flush = function(self)
+            flushed = true
+            return self
+        end,
+        write = function(self, msg)
+            buf = buf .. msg
+            return self
+        end,
+    })
+    printx.flush()
+    assert.is_true(flushed)
+    printx('foo', 'bar', 'baz')
+    assert.equal(buf, 'foo bar baz\n')
+
+    -- test that set default output
+    printx.setoutput()
+    assert.not_equal(io.output(), defout)
+
+    -- test that throws an error if argument is invalid
+    local err = assert.throws(printx.setoutput, true)
+    assert.match(err, 'file must be file*, string or table')
 end
 
 local function test_print_features()
@@ -305,6 +342,7 @@ local function test_flush()
     local f = assert(io.output(fname))
 
     assert(f ~= defout)
+    printx.setoutput()
     f:setvbuf("full")
     f:write('hello')
 
@@ -318,8 +356,10 @@ local function test_flush()
     remove(f)
     file:close()
     os.remove(fname)
+    printx.setoutput()
 end
 
+test_setoutput()
 test_print_features()
 test_print_fatal()
 test_setlevel()

@@ -5,6 +5,8 @@ include_files = {
 }
 ignore = {
     'assert',
+    -- unused variable
+    '211',
     -- unused argument
     '212',
 }
