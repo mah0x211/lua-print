@@ -29,7 +29,7 @@ print(format('print %q', 'hello', 'world')) -- print "hello" world
 ```
 
 
-## print.flush()
+## ok, err, errnum = print.flush()
 
 this function is equivalent to the following code.
 
@@ -45,21 +45,40 @@ this function converts the given arguments to a string.
 if the first argument is a format string, the rest of the arguments will be converted according to the format specifiers.
 
 
-## Print values to the default output file
+## print.setoutput( [out] )
 
-the following functions are receives any number of arguments and prints their values with `ISO8601 formatted date` and a function name as `label` string to default output file (`io.output()`).
+change the output destination.
+
+**Parameters**
+
+- `out:nil|file*|string|table`: output destination.
+    - `nil|file*|string`: equivalent to `io.output(out)`
+    - `table`: table must contains the following functions;
+      ```lua
+      ok, err, errnum = out.write(out, msg)
+      ok, err, errnum = out.flush(out)
+      - ok:boolean
+      - err:string
+      - errnum:integer
+      - msg:string
+      ```
+
+
+## Print values
+
+the following functions are receives any number of arguments and prints their values with `ISO8601 formatted date` and a function name as `label` string to output file (default: `io.output()`).
 
 if the first argument is a format string, the rest of the arguments will be converted according to the format specifiers.
 
 - **print.fatal(...)**: throws an `error` after prints their values.
-- **print.emerge(...)**
-- **print.alert(...)**
-- **print.crit(...)**
-- **print.error(...)**
-- **print.warn(...)**
-- **print.notice(...)**
-- **print.info(...)**
-- **print.debug(...)**: debug information will be added to the output string.
+- **ok, err, errnum = print.emerge(...)**
+- **ok, err, errnum = print.alert(...)**
+- **ok, err, errnum = print.crit(...)**
+- **ok, err, errnum = print.error(...)**
+- **ok, err, errnum = print.warn(...)**
+- **ok, err, errnum = print.notice(...)**
+- **ok, err, errnum = print.info(...)**
+- **ok, err, errnum = print.debug(...)**: debug information will be added to the output string.
 
 the above functions can limit the output by setting the output level.
 

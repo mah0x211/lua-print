@@ -20,6 +20,8 @@
 -- THE SOFTWARE.
 --
 local dump = require('dump')
+local assert = assert
+local pcall = pcall
 local concat = table.concat
 local date = os.date
 local error = error
@@ -28,12 +30,14 @@ local format = string.format
 local getinfo = debug.getinfo
 local sub = string.sub
 local output = io.output
-local print = print
 local select = select
 local type = type
 local unpack = unpack or table.unpack
 local builtin_tostring = tostring
 -- static variables
+local OUTPUT = output()
+local WRITE_FN = OUTPUT.write
+local FLUSH_FN = OUTPUT.flush
 local DEBUG = false
 local PRINT_LEVEL = 7
 local LEVELS = {
@@ -101,7 +105,7 @@ local STRING_SPECS = {
 --- @param narg integer
 --- @vararg any
 --- @return integer n
---- @return any[] params
+--- @return any[]|nil params
 local function count_format_params(s, narg, ...)
     if type(s) ~= 'string' then
         return 0
@@ -151,10 +155,32 @@ local function stringify(strv, narg, fmt, ...)
     return strv
 end
 
+--- printout
+--- @param strv string[]
+--- @param narg integer
+--- @param fmt string
+--- @param ... string
+--- @return boolean ok
+--- @return any err
+--- @return any eno
+--- @return string msg
+local function printout(strv, narg, fmt, ...)
+    stringify(strv, narg, fmt, ...)
+    local msg = concat(strv, ' ') .. '\n'
+    local ok, err, eno = WRITE_FN(OUTPUT, msg)
+    if not ok then
+        return false, err, eno, msg
+    end
+    return true, nil, nil, msg
+end
+
 --- printf
 --- @param label string
 --- @param narg integer
 --- @param fmt string
+--- @return boolean ok
+--- @return any err
+--- @return any eno
 local function printf(label, narg, fmt, ...)
     local strv = {
         -- ISO8601 date format
@@ -167,15 +193,11 @@ local function printf(label, narg, fmt, ...)
         strv[2] = format('[%s:%d]', info.short_src, info.currentline)
     end
 
-    stringify(strv, narg, fmt, ...)
-
-    local msg = concat(strv, ' ') .. '\n'
-    local _, err = output():write(msg)
-    if err then
-        error(err, 3)
-    elseif label == 'fatal' then
+    local ok, err, eno, msg = printout(strv, narg, fmt, ...)
+    if label == 'fatal' then
         error(msg, 3)
     end
+    return ok, err, eno
 end
 
 --- new
@@ -187,7 +209,9 @@ local function new(label)
         if LEVELS[label] <= PRINT_LEVEL then
             local narg = select('#', ...)
             if narg > 0 then
-                printf(label, narg - 1, ...)
+                local ok, err, eno = printf(label, narg - 1, ...)
+                -- prevent tail-call optimization
+                return ok, err, eno
             end
         end
     end
@@ -208,8 +232,36 @@ local function vformat(...)
 end
 
 --- flush
+--- @return boolean ok
+--- @return any err
+--- @return any eno
 local function flush()
-    output():flush()
+    local ok, err, eno = FLUSH_FN(OUTPUT)
+    if not ok then
+        return false, err, eno
+    end
+    return true
+end
+
+--- setoutput
+--- @param file file*|string|table|nil
+local function setoutput(file)
+    local f
+    if file == nil then
+        -- use default output
+        f = assert(output())
+    elseif not pcall(function()
+        f = assert(output(file))
+    end) and not pcall(function()
+        assert(type(file.write) == 'function' and type(file.flush) == 'function')
+        f = file
+    end) then
+        error('file must be file*, string or table', 2)
+    end
+
+    OUTPUT = f
+    WRITE_FN = OUTPUT.write
+    FLUSH_FN = OUTPUT.flush
 end
 
 --- setlevel
@@ -239,7 +291,8 @@ end
 --- call
 --- @vararg ...
 local function call(_, ...)
-    print(vformat(...))
+    local narg = select('#', ...)
+    printout({}, narg > 0 and narg - 1 or narg, ...)
 end
 
 return setmetatable({}, {
@@ -249,6 +302,7 @@ return setmetatable({}, {
         format = vformat,
         setdebug = setdebug,
         setlevel = setlevel,
+        setoutput = setoutput,
         fatal = new('fatal'),
         emerge = new('emerge'),
         alert = new('alert'),
