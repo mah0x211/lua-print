@@ -30,6 +30,7 @@ local function call(fn, ...)
 end
 
 local function test_print_features()
+    printx.setlevel('debug')
     -- test that output date and label
     for k, v in pairs({
         emerge = {
@@ -102,6 +103,16 @@ local function test_print_features()
                 foo = 'bar',
             },
         },
+        debug = {
+            'hello print %s',
+            'format',
+            'world',
+            1,
+            true,
+            {
+                foo = 'bar',
+            },
+        },
     }) do
         local f = assert(call(function()
             printx[k](unpack(v))
@@ -112,9 +123,15 @@ local function test_print_features()
         -- match date
         assert.match(res, '^%d+%-%d+%-%d+T%d+:%d+:%d+.+ ', false)
         -- match label and argument
-        assert.match(res, string.format(
-                         '[%s] hello print format world 1 true { foo = "bar" }',
-                         k))
+        if k == 'debug' then
+            assert.match(res, string.format(
+                             '%%[%s] %%[[^:]+:%%d+] hello print format world 1 true { foo = "bar" }',
+                             k), false)
+        else
+            assert.match(res, string.format(
+                             '[%s] hello print format world 1 true { foo = "bar" }',
+                             k))
+        end
     end
 end
 

@@ -58,6 +58,7 @@ if the first argument is a format string, the rest of the arguments will be conv
 - **print.warn(...)**
 - **print.notice(...)**
 - **print.info(...)**
+- **print.debug(...)**: debug information will be added to the output string.
 
 the above functions can limit the output by setting the output level.
 
@@ -71,7 +72,8 @@ The following output levels can be set.
 - `'error'`: `print.error` and the above features will be enabled.
 - `'warn'`: `print.warn` and the above features will be enabled.
 - `'notice'`: `print.notice` and the above features will be enabled.
-- `'info'`: `print.info` and the above features will be enabled.
+- `'info'`: `print.info` and the above features will be enabled. (**default**)
+- `'debug'`: `print.debug` and the above features will be enabled.
 
 for example, if you do `setlevel('error')`, `warn`, `notice`, and `info` will not be printed.
 
