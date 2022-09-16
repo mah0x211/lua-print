@@ -37,6 +37,7 @@ local builtin_tostring = tostring
 local DEBUG = false
 local PRINT_LEVEL = 7
 local LEVELS = {
+    [0] = 'fatal',
     [1] = 'emerge',
     [2] = 'alert',
     [3] = 'crit',
@@ -45,6 +46,7 @@ local LEVELS = {
     [6] = 'notice',
     [7] = 'info',
     [8] = 'debug',
+    fatal = 0,
     emerge = 1,
     alert = 2,
     crit = 3,
@@ -153,7 +155,6 @@ end
 --- @param label string
 --- @param narg integer
 --- @param fmt string
---- @return function
 local function printf(label, narg, fmt, ...)
     local strv = {
         -- ISO8601 date format
@@ -168,9 +169,12 @@ local function printf(label, narg, fmt, ...)
 
     stringify(strv, narg, fmt, ...)
 
-    local _, err = output():write(concat(strv, ' ') .. '\n')
+    local msg = concat(strv, ' ') .. '\n'
+    local _, err = output():write(msg)
     if err then
         error(err, 3)
+    elseif label == 'fatal' then
+        error(msg, 3)
     end
 end
 
@@ -245,6 +249,7 @@ return setmetatable({}, {
         format = vformat,
         setdebug = setdebug,
         setlevel = setlevel,
+        fatal = new('fatal'),
         emerge = new('emerge'),
         alert = new('alert'),
         crit = new('crit'),

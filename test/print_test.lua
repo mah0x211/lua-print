@@ -135,6 +135,36 @@ local function test_print_features()
     end
 end
 
+local function test_print_fatal()
+    -- test that output date and label and throws an error
+    local err
+    local f = assert(call(function()
+        err = assert.throws(function()
+            printx.fatal(unpack({
+                'hello print %s',
+                'format',
+                'world',
+                1,
+                true,
+                {
+                    foo = 'bar',
+                },
+            }))
+        end)
+    end))
+    local res = f:read('*a')
+    remove(f)
+
+    -- error messages include output messages
+    assert.match(err, res)
+    -- match date
+    assert.match(res, '^%d+%-%d+%-%d+T%d+:%d+:%d+.+ ', false)
+    -- match label and argument
+    assert.match(res,
+                 '%[fatal] hello print format world 1 true { foo = "bar" }',
+                 false)
+end
+
 local function test_setlevel()
     -- test that set the output level
     local levels = {
@@ -291,6 +321,7 @@ local function test_flush()
 end
 
 test_print_features()
+test_print_fatal()
 test_setlevel()
 test_setdebug()
 test_format()
