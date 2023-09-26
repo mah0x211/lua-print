@@ -39,6 +39,7 @@ local OUTPUT = output()
 local WRITE_FN = OUTPUT.write
 local FLUSH_FN = OUTPUT.flush
 local DEBUG = false
+local SRCLEN = 0
 local PRINT_LEVEL = 7
 local LEVELS = {
     [0] = 'fatal',
@@ -190,6 +191,9 @@ local function printf(label, narg, fmt, ...)
     -- append call info
     if label == 'debug' or DEBUG then
         local info = getinfo(3, 'Sl')
+        if SRCLEN > 0 then
+            info.short_src = '...' .. sub(info.short_src, -SRCLEN)
+        end
         strv[2] = format('[%s:%d]', info.short_src, info.currentline)
     end
 
@@ -281,11 +285,15 @@ end
 
 --- setdebug
 --- @param enabled boolean
-local function setdebug(enabled)
+--- @param srclen number?
+local function setdebug(enabled, srclen)
     if type(enabled) ~= 'boolean' then
         error('enabled must be boolean', 2)
+    elseif srclen ~= nil and type(srclen) ~= 'number' then
+        error('srclen must be number or nil', 2)
     end
     DEBUG = enabled
+    SRCLEN = srclen or SRCLEN
 end
 
 --- call
