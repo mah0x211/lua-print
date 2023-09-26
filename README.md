@@ -109,5 +109,7 @@ print.info('hello info')
 
 Also, when debug mode is enabled with the following function, debug information will be added to the output string.
 
-- **print.setdebug( enabled:boolean )**
+- **print.setdebug( enabled:boolean [, srclen] )**  
+    - `enabled:boolean`: enable debug mode that prints the source pathname and line number.
+    - `srclen:integer`: source file length. (**default**: `0` - `<1` means unlimited)
 

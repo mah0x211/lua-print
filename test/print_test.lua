@@ -272,7 +272,7 @@ end
 
 local function test_setdebug()
     -- test that set the debug to true
-    printx.setdebug(true)
+    printx.setdebug(true, 10)
     for k, v in pairs({
         emerge = 'hello',
         alert = 'hello',
@@ -289,17 +289,18 @@ local function test_setdebug()
         remove(f)
 
         -- enabled to output
-        local pat = string.format('%%[%s%%] ', k) .. '%[.+:%d+] ' .. v
-        assert.match(res, pat, false)
+        local pat = string.format('\\[%s\\] ', k) .. '\\[.{13}:\\d+] ' .. v
+        assert.re_match(res, pat)
     end
     printx.setdebug(false)
 
-    --- test that throws unsupported error
-    local ok, err = pcall(function()
-        printx.setdebug(1)
-    end)
-    assert(not ok, 'setdebug true1')
+    --- test that throws an error if enabled is invalid
+    local err = assert.throws(printx.setdebug, 1)
     assert.match(err, 'enabled must be boolean')
+
+    --- test that throws an error if srclen is invalid
+    err = assert.throws(printx.setdebug, true, 'foo')
+    assert.match(err, 'srclen must be number or nil')
 end
 
 local function test_format()
