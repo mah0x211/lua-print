@@ -70,7 +70,8 @@ the following functions are receives any number of arguments and prints their va
 
 if the first argument is a format string, the rest of the arguments will be converted according to the format specifiers.
 
-- **print.fatal(...)**: throws an `error` after prints their values.
+- **print.fatal(...)**: throws an `error` after prints their values.  
+    - if no arguments are given, the `error` message will be `fatal error!`.
 - **ok, err, errnum = print.emerge(...)**
 - **ok, err, errnum = print.alert(...)**
 - **ok, err, errnum = print.crit(...)**

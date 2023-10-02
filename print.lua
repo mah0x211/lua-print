@@ -166,6 +166,9 @@ end
 --- @return any eno
 --- @return string msg
 local function printout(strv, narg, fmt, ...)
+    if narg < 0 then
+        fmt = 'fatal error!'
+    end
     stringify(strv, narg, fmt, ...)
     local msg = concat(strv, ' ') .. '\n'
     local ok, err, eno = WRITE_FN(OUTPUT, msg)
@@ -189,7 +192,7 @@ local function printf(label, narg, fmt, ...)
     }
 
     -- append call info
-    if label == 'debug' or DEBUG then
+    if label == 'debug' or label == 'fatal' or DEBUG then
         local info = getinfo(3, 'Sl')
         if SRCLEN > 0 then
             info.short_src = '...' .. sub(info.short_src, -SRCLEN)
@@ -212,7 +215,7 @@ local function new(label)
     return function(...)
         if LEVELS[label] <= PRINT_LEVEL then
             local narg = select('#', ...)
-            if narg > 0 then
+            if narg > 0 or LEVELS[label] == 0 then
                 local ok, err, eno = printf(label, narg - 1, ...)
                 -- prevent tail-call optimization
                 return ok, err, eno
