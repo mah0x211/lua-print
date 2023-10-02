@@ -204,6 +204,7 @@ local function test_print_fatal()
     remove(f)
 
     -- error messages include output messages
+    res = string.gsub(res, '\n$', '')
     assert.match(err, res)
     -- match date
     assert.match(res, '^%d+%-%d+%-%d+T%d+:%d+:%d+.+ ', false)
