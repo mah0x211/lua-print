@@ -53,7 +53,7 @@ change the output destination.
 
 - `out:nil|file*|string|table`: output destination.
     - `nil|file*|string`: equivalent to `io.output(out)`
-    - `table`: table must contains the following functions;
+    - `table`: table must contains the `write` and `flush` functions;
       ```lua
       ok, err, errnum = out.write(out, msg)
       ok, err, errnum = out.flush(out)

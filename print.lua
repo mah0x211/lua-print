@@ -170,8 +170,8 @@ local function printout(strv, narg, fmt, ...)
         fmt = 'fatal error!'
     end
     stringify(strv, narg, fmt, ...)
-    local msg = concat(strv, ' ') .. '\n'
-    local ok, err, eno = WRITE_FN(OUTPUT, msg)
+    local msg = concat(strv, ' ')
+    local ok, err, eno = WRITE_FN(OUTPUT, msg .. '\n')
     if not ok then
         return false, err, eno, msg
     end
