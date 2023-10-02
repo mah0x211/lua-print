@@ -15,10 +15,10 @@ local function call(fn, ...)
     local defout = io.output()
     local f = io.tmpfile()
 
-    assert(io.output(f) == f)
+    assert.equal(io.output(f), f)
     printx.setoutput()
     local ok, err = pcall(fn, ...)
-    assert(io.output(defout) == defout)
+    assert.equal(io.output(defout), defout)
     printx.setoutput()
 
     if not ok then
@@ -209,8 +209,14 @@ local function test_print_fatal()
     assert.match(res, '^%d+%-%d+%-%d+T%d+:%d+:%d+.+ ', false)
     -- match label and argument
     assert.match(res,
-                 '%[fatal] hello print format world 1 true { foo = "bar" }',
+                 '%[fatal] %[[^:]+:%d+%] hello print format world 1 true { foo = "bar" }',
                  false)
+
+    -- test that throws an error with no arguments
+    err = assert.throws(function()
+        printx.fatal()
+    end)
+    assert.match(err, 'fatal error!')
 end
 
 local function test_setlevel()
