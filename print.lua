@@ -19,28 +19,22 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 -- THE SOFTWARE.
 --
-local dump = require('dump')
-local assert = assert
 local pcall = pcall
+local select = select
+local type = type
 local concat = table.concat
 local date = os.date
-local error = error
-local find = string.find
-local format = string.format
 local getinfo = debug.getinfo
 local sub = string.sub
 local output = io.output
-local select = select
-local type = type
-local unpack = unpack or table.unpack
-local builtin_tostring = tostring
+local format = require('string.format.all')
 -- static variables
 local OUTPUT = output()
 local WRITE_FN = OUTPUT.write
 local FLUSH_FN = OUTPUT.flush
 local DEBUG = false
 local SRCLEN = 0
-local PRINT_LEVEL = 7
+local PRINT_LEVEL = 7 --- @type string|integer
 local LEVELS = {
     [0] = 'fatal',
     [1] = 'emerge',
@@ -62,114 +56,25 @@ local LEVELS = {
     debug = 8,
 }
 
---- tostring converts v to string
---- @param v any
---- @return string str
-local function tostring(v)
-    local t = type(v)
-
-    if t == 'string' then
-        return v
-    elseif t == 'table' then
-        return dump(v, 0)
-    end
-
-    return builtin_tostring(v)
-end
-
---- tostringv converts varargs to string and insert it into a string vector
---- @param strv string[]
---- @vararg ...
---- @return string[] strv
-local function tostringv(strv, ...)
-    local argv = {
-        ...,
-    }
-    local n = #strv
-    local narg = select('#', ...)
-
-    -- convert to string
-    for i = 1, narg do
-        strv[n + i] = tostring(argv[i])
-    end
-
-    return strv
-end
-
-local STRING_SPECS = {
-    q = true,
-    s = true,
-}
-
---- count_format_params
---- @param s string
---- @param narg integer
---- @vararg any
---- @return integer n
---- @return any[]|nil params
-local function count_format_params(s, narg, ...)
-    if type(s) ~= 'string' then
-        return 0
-    end
-
-    local args = {
-        ...,
-    }
-    local params = {}
-    local n = 0
-    local head = find(s, '%%')
-    while head do
-        local spec = sub(s, head + 1, head + 1)
-        if spec == '%' then
-            -- skip escape
-            head = head + 1
-        elseif n == narg then
-            -- too many format specifier
-            return narg, args
-        else
-            n = n + 1
-            params[n] = STRING_SPECS[spec] and tostring(args[n]) or args[n]
-        end
-        head = find(s, '%%', head + 1)
-    end
-
-    return n, params
-end
-
---- stringify
---- @param strv string[]
---- @param narg integer
---- @param fmt string
---- @return string[] strv
-local function stringify(strv, narg, fmt, ...)
-    local nparam, params = count_format_params(fmt, narg, ...)
-
-    if nparam == 0 then
-        tostringv(strv, fmt, ...)
-    else
-        strv[#strv + 1] = format(fmt, unpack(params))
-        if narg > nparam then
-            tostringv(strv, select(nparam + 1, ...))
-        end
-    end
-
-    return strv
+--- vformat
+--- @param ... any
+--- @return string s
+local function vformat(...)
+    local s = format(...)
+    return s
 end
 
 --- printout
 --- @param strv string[]
---- @param narg integer
 --- @param fmt string
 --- @param ... string
 --- @return boolean ok
 --- @return any err
 --- @return any eno
 --- @return string msg
-local function printout(strv, narg, fmt, ...)
-    if narg < 0 then
-        fmt = 'fatal error!'
-    end
-    stringify(strv, narg, fmt, ...)
+local function printout(strv, fmt, ...)
+    strv[#strv + 1] = vformat(fmt, ...)
+
     local msg = concat(strv, ' ')
     local ok, err, eno = WRITE_FN(OUTPUT, msg .. '\n')
     if not ok then
@@ -180,12 +85,12 @@ end
 
 --- printf
 --- @param label string
---- @param narg integer
---- @param fmt string
+--- @param fmt any
+--- @param ... any
 --- @return boolean ok
 --- @return any err
 --- @return any eno
-local function printf(label, narg, fmt, ...)
+local function printf(label, fmt, ...)
     local strv = {
         -- ISO8601 date format
         format('%s [%s]', date('%FT%T%z'), label),
@@ -198,9 +103,13 @@ local function printf(label, narg, fmt, ...)
             info.short_src = '...' .. sub(info.short_src, -SRCLEN)
         end
         strv[2] = format('[%s:%d]', info.short_src, info.currentline)
+
+        if fmt == nil and label == 'fatal' then
+            fmt = 'fatal error!'
+        end
     end
 
-    local ok, err, eno, msg = printout(strv, narg, fmt, ...)
+    local ok, err, eno, msg = printout(strv, fmt, ...)
     if label == 'fatal' then
         error(msg, 3)
     end
@@ -216,26 +125,12 @@ local function new(label)
         if LEVELS[label] <= PRINT_LEVEL then
             local narg = select('#', ...)
             if narg > 0 or LEVELS[label] == 0 then
-                local ok, err, eno = printf(label, narg - 1, ...)
+                local ok, err, eno = printf(label, ...)
                 -- prevent tail-call optimization
                 return ok, err, eno
             end
         end
     end
-end
-
---- vformat
---- @vararg any
-local function vformat(...)
-    local narg = select('#', ...)
-
-    if narg == 0 then
-        return ''
-    elseif narg == 1 then
-        return tostring(...)
-    end
-
-    return concat(stringify({}, narg - 1, ...), ' ')
 end
 
 --- flush
@@ -300,10 +195,9 @@ local function setdebug(enabled, srclen)
 end
 
 --- call
---- @vararg ...
+--- @param ... any
 local function call(_, ...)
-    local narg = select('#', ...)
-    printout({}, narg > 0 and narg - 1 or narg, ...)
+    printout({}, ...)
 end
 
 return setmetatable({}, {
