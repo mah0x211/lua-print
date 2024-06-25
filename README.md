@@ -28,6 +28,10 @@ local format = require('print').format
 print(format('print %q', 'hello', 'world')) -- print "hello" world
 ```
 
+the `format` function is depend on the `string-format-all` module. please refer to the following URL for more information.
+
+- https://github.com/mah0x211/lua-string-format-all
+
 
 ## ok, err, errnum = print.flush()
 
