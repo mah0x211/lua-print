@@ -335,7 +335,7 @@ local function test_format()
                 'hello %%s',
                 'world',
             },
-            equal = 'hello %%s world',
+            equal = 'hello %s world',
         },
         {
             arg = {
@@ -352,7 +352,7 @@ local function test_format()
 
     -- test that throws an error
     local err = assert.throws(printx.format, 'hello %s %d', 'world')
-    assert.match(err, 'argument #3')
+    assert.match(err, 'not enough argument')
 end
 
 local function test_flush()
