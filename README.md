@@ -46,7 +46,7 @@ io.output():flush()
 
 this function converts the given arguments to a string.
 
-if the first argument is a format string, the rest of the arguments will be converted according to the format specifiers.
+if the first argument is a format string, the rest of the arguments will be converted according to the format specifiers. if only one argument is given, it will simply be converted to a string.
 
 
 ## print.setoutput( [out] )
