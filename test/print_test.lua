@@ -326,6 +326,12 @@ local function test_format()
         {
             arg = {
                 'hello %s',
+            },
+            equal = 'hello %s',
+        },
+        {
+            arg = {
+                'hello %s',
                 'world',
             },
             equal = 'hello world',

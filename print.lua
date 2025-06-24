@@ -60,7 +60,11 @@ local LEVELS = {
 --- @param ... any
 --- @return string s
 local function vformat(...)
-    local s = format(...)
+    local s = ...
+    local narg = select('#', ...)
+    if narg > 1 or type(s) ~= 'string' then
+        s = format(...)
+    end
     return s
 end
 
